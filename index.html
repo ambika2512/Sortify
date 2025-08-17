@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Sorting Visualizer & Complexity Lab</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gif.js.optimized/dist/gif.js"></script>
+  <style>
+    body {
+      background: #f3f4f6;
+      color: #18181b;
+      transition: background 0.3s, color 0.3s;
+    }
+    body.dark-theme {
+      background: #18181b !important;
+      color: #f3f4f6 !important;
+    }
+    body.dark-theme input, body.dark-theme select, body.dark-theme button {
+      background: #27272a;
+      color: #f3f4f6;
+      border-color: #444;
+    }
+    .info-block { margin: 10px 0; }
+    #chart-container { display: flex; gap: 40px; margin: 20px 0; }
+    #chart-container > div { flex: 1; }
+    @media (max-width: 900px) {
+      #chart-container { flex-direction: column; gap: 20px; }
+      #chart-container > div { width: 100%; }
+    }
+    #sort-form > * { margin: 4px 4px 4px 0; }
+  </style>
+</head>
+<body>
+  <h1>Sorting Visualizer & Complexity Lab</h1>
+  <!-- Theme toggle button with label, rightmost top corner -->
+  <button id="theme-btn" title="Toggle Theme" style="position:fixed; top:18px; right:18px; background:none; border:none; font-size:2rem; cursor:pointer; display:flex; align-items:center; gap:8px; z-index:1000;">
+    <span id="theme-icon" aria-label="theme">🌞</span>
+    <span style="font-size:1rem; font-weight:600; color:#38bdf8; letter-spacing:1px;">mode</span>
+  </button>
+  <form id="sort-form" autocomplete="off">
+    <input type="text" id="array-input" placeholder="e.g. 5,3,8,1" />
+    <select id="algo-select">
+      <option value="bubbleSort">Bubble Sort</option>
+      <option value="selectionSort">Selection Sort</option>
+      <option value="insertionSort">Insertion Sort</option>
+      <option value="mergeSort">Merge Sort</option>
+      <option value="quickSort">Quick Sort</option>
+      <option value="heapSort">Heap Sort</option>
+      <option value="countingSort">Counting Sort</option>
+    </select>
+    <button type="submit">Sort Array</button>
+  </form>
+
+  <!-- AI Recommendation and Explanation Block -->
+  <div id="ai-block" style="margin:10px 0; padding:10px; background:rgba(0,212,255,0.07); border-radius:8px; font-weight:bold;"></div>
+
+  <div id="chart-container">
+    <div>
+      <div style="text-align:center;font-weight:bold;">Original Array</div>
+      <canvas id="bar-chart-original" width="400" height="200"></canvas>
+    </div>
+    <div>
+      <div style="text-align:center;font-weight:bold;">Sorted Array</div>
+      <canvas id="bar-chart-sorted" width="400" height="200"></canvas>
+    </div>
+  </div>
+  <div class="info-block" id="algo-info">
+    <h2 style="margin-bottom:6px; color:#0ea5e9;">Algorithm Details</h2>
+    <!-- Algorithm details will be injected here -->
+  </div>
+  <div class="info-block" id="complexity-info">
+    <h2 style="margin-bottom:6px; color:#0ea5e9;">Complexity</h2>
+    <!-- Complexity info will be injected here -->
+  </div>
+  <div class="info-block" id="ai-complexity-analysis">
+    <h2 style="margin-bottom:6px; color:#0ea5e9;">🤖 AI Time Complexity Analysis</h2>
+    <div id="ai-complexity-content" style="background: rgba(0,212,255,0.05); padding: 15px; border-radius: 8px; margin-top: 10px;">
+      <!-- AI complexity analysis will be injected here -->
+    </div>
+    <div id="algorithm-comparison" style="margin-top: 15px;">
+      <h3 style="color:#0ea5e9; margin-bottom: 10px;">📊 Algorithm Performance Comparison</h3>
+      <div id="comparison-chart" style="height: 300px; overflow-y: auto; background: rgba(0,212,255,0.03); padding: 15px; border-radius: 8px;">
+        <!-- Algorithm comparison will be injected here -->
+      </div>
+    </div>
+  </div>
+  <div class="info-block" id="step-explanation-container" style="margin-top: 20px;">
+    <h2 style="margin-bottom:6px; color:#0ea5e9;">📝 Step-by-Step Explanation</h2>
+    <pre id="step-explanation-block" style="background:rgba(0,212,255,0.04); padding:15px; border-radius:8px; font-size:1em; white-space:pre-wrap; margin:0; border:1px solid #e2e8f0; max-height: 300px; overflow-y: auto;"></pre>
+  </div>
+  <div class="info-block" id="code-block-container" style="margin-top: 20px;">
+    <h2 style="margin-bottom:6px; color:#0ea5e9;">Code</h2>
+    <pre id="code-block" style="background:#f8fafc; padding:15px; border-radius:8px; overflow-x:auto; font-family:'Courier New',monospace; font-size:14px; line-height:1.5; margin:0; border:1px solid #e2e8f0;"></pre>
+    <button id="copy-code-btn" style="margin:10px 0 20px 0; padding:8px 18px; border-radius:12px; background:#0ea5e9; color:#fff; font-weight:700; border:none; cursor:pointer;">
+      Copy Code
+    </button>
+    <button id="download-gif-btn" style="margin:10px 0 20px 0; padding:8px 18px; border-radius:12px; background:#ff7fa3; color:#fff; font-weight:700; border:none; cursor:pointer;">
+      Download GIF
+    </button>
+    <div id="gif-progress" style="display:none; margin:10px 0; padding:10px; background:rgba(255,127,163,0.1); border-radius:8px;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <div style="width:20px; height:20px; border:2px solid #ff7fa3; border-top:2px solid transparent; border-radius:50%; animation:spin 1s linear infinite;"></div>
+        <span style="color:#ff7fa3; font-weight:600;">Generating GIF...</span>
+      </div>
+      <div id="gif-progress-text" style="margin-top:5px; font-size:0.9rem; color:#666;"></div>
+    </div>
+  </div>
+  <style>
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+  <script src="main.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    // Theme toggle logic
+    const themeBtn = document.getElementById('theme-btn');
+    const themeIcon = document.getElementById('theme-icon');
+    function updateThemeIcon() {
+      if (document.body.classList.contains('dark-theme')) {
+        themeIcon.textContent = '🌙'; // Half moon for dark
+      } else {
+        themeIcon.textContent = '🌞'; // Sun for light
+      }
+    }
+    themeBtn.addEventListener('click', function() {
+      document.body.classList.toggle('dark-theme');
+      updateThemeIcon();
+      // Optionally, you can also update other backgrounds if needed
+    });
+    // Set icon on load
+    updateThemeIcon();
+  </script>
+</body>
+</html>
